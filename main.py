@@ -88,7 +88,7 @@ def DPLL(formula):
         chosen_literal = max(j_literal_map, key=j_literal_map.get, default=None)
 
         # Return False when there are no more unassigned variable to assign.
-        return chosen_literal is not None
+        return chosen_literal
             
     def BCP(formula, assignments, decision_level, implication_graph):
         """
@@ -128,6 +128,8 @@ def DPLL(formula):
                             if negated_literal not in implication_graph.vertices: 
                                 implication_graph.add_vertex(negated_literal, decision_level)
                             implication_graph.add_edge(negated_literal, unassigned_literal)
+                    
+                    break
 
                 if false_count == len(clause): 
                     # Add conflict node and update the graph 
@@ -135,8 +137,7 @@ def DPLL(formula):
                     return "conflict"
 
             if not unit_clause_found:
-                print("Did not find unit clauses.")
-                break
+                return "no_unit_clause"
 
         return None
 
@@ -165,14 +166,28 @@ def DPLL(formula):
 
     # Main DPLL loop
     while True: 
-        if not decide(formula, assignments, implication_graph): 
+        chosen_literal = decide(formula, assignments, implication_graph)
+
+        if not chosen_literal: 
+            # All variables have been assigned
             return "Satisfiable"
-        else:
-            while BCP(formula, assignments, decision_level, implication_graph) == "conflict":
-                backtrack_level = analyze_conflict(implication_graph, decision_level)
-                if backtrack_level < 0: 
-                    return "Unsatisfiable"
-                backtrack(assignments, decision_level, backtrack_level, implication_graph)
+
+        # Assign a truth value to the chosen literal 
+        # Initally, try assigning True
+        assignments[chosen_literal] = True
+        decision_level += 1 # Increment decision level for each new assignemnt 
+
+        # Perform Boolean Constraint Propagation
+        res = BCP(formula, assignments, decision_level, implication_graph)
+        while res == "conflict":
+            # Handle conflict: Analyze conflict, backtrack, and possibly try assigning False
+            backtrack_level = analyze_conflict(implication_graph, decision_level)
+            if backtrack_level < 0: 
+                return "Unsatisfiable"
+            backtrack(assignments, decision_level, backtrack_level, implication_graph)
+
+            # If backtracking has changed the assignment of the chosen literal, propagate again
+            res = BCP(formula, assignments, decision_level, implication_graph)
 
 # Example CNF formula represented as a list of lists
 cnf_formula = [[1, -2, 3], [-1, 4], [2, -3, -4]]
