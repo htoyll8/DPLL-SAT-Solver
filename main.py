@@ -48,13 +48,26 @@ class ImplicationGraph:
             print("Conflict node: ", self.conflict_node)
 
 def DPLL(formula):
-    def decide(assignments, decision_level): 
+    def decide(formula, assignments, implication_graph): 
         """
         Chooses an unassigned variable and assigns a truth value.
-        Implement heuristics for decision making.
+        Implement Jeroslow-Wang heuristics for decision making.
         """
-        pass
+        j_literal_map = {}
+        for clause in formula: 
+            for literal in clause: 
+                if literal in assignments or -literal in assignments: 
+                    continue
+                if literal not in j_literal_map: 
+                    j_literal_map[literal] = 0
+                j_literal_map[literal] += 2 ** len(clause)
 
+        # Selecting the literal with the maximum J(l) value.
+        chosen_literal = max(j_literal_map, key=j_literal_map.get, default=None)
+
+        # Return False when there are no more unassigned variable to assign.
+        return chosen_literal is not None
+            
     def BCP(formula, assignments, decision_level, implication_graph):
         """
         Perform Boolean Constraint Propagation.
@@ -130,7 +143,7 @@ def DPLL(formula):
 
     # Main DPLL loop
     while True: 
-        if not decide(assignments, decision_level): 
+        if not decide(formula, assignments, implication_graph): 
             return "Satisfiable"
         else:
             while BCP(formula, assignments, decision_level, implication_graph) == "conflict":
@@ -138,7 +151,6 @@ def DPLL(formula):
                 if backtrack_level < 0: 
                     return "Unsatisfiable"
                 backtrack(assignments, decision_level, backtrack_level, implication_graph)
-
 
 # Example CNF formula represented as a list of lists
 cnf_formula = [[1, -2, 3], [-1, 4], [2, -3, -4]]
