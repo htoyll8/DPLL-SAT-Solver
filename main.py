@@ -50,8 +50,30 @@ class ImplicationGraph:
 def DPLL(formula):
     def decide(formula, assignments, implication_graph): 
         """
-        Chooses an unassigned variable and assigns a truth value.
-        Implement Jeroslow-Wang heuristics for decision making.
+        Selects an unassigned variable from a given CNF formula using the Jeroslow-Wang heuristic.
+
+        This function calculates the Jeroslow-Wang score for each unassigned literal in the formula.
+        The literal with the highest score, which represents its frequency and appearance in shorter clauses,
+        is chosen for the next assignment. The function ensures that only unassigned literals (neither the literal
+        nor its negation is already assigned) are considered.
+
+        Args:
+            formula (list of list of int): The CNF formula represented as a list of clauses, 
+                                        where each clause is a list of integers (literals).
+            assignments (dict): A dictionary of current assignments of literals. Keys are literals, 
+                                and values are their assigned truth values.
+            implication_graph (ImplicationGraph): An object representing the implication graph 
+                                                used in the DPLL algorithm.
+
+        Returns:
+            bool: Returns True if an unassigned variable is successfully chosen. Returns False if 
+                there are no more unassigned variables to assign, which indicates that all variables
+                have been assigned without contradiction, suggesting that the formula is satisfiable 
+                under the current assignments.
+
+        Note:
+            The function does not assign a truth value to the chosen literal; it merely selects it.
+            The actual assignment of truth values is handled elsewhere in the DPLL algorithm.
         """
         j_literal_map = {}
         for clause in formula: 
